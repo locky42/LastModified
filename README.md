@@ -1,2 +1,2 @@
 # LastModified
-wp-Last-Modified
+Plugin for WordPress

@@ -1,0 +1,2 @@
+# LastModified
+wp-Last-Modified

@@ -5,7 +5,7 @@
  * Plugin URI:  https://github.com/locky42/LastModified
  * Author URI:  https://github.com/locky42
  * Author:      Zinchenko Maxym
- * Version:     1.0
+ * Version:     1.1
  * License:     WTFPL
  * License URI: http://www.wtfpl.net/
  *
@@ -55,9 +55,20 @@ function set_headers($time) {
 
 
 add_action( 'template_redirect', 'last_modified', 0);
-function  last_modified() {
+function  last_modified($input) {
+    if(!function_exists('is_admin') || !function_exists('is_page')) {
+        return $input;
+    }
     if(!is_admin()) {
         global $post;
+        if(!empty($_POST) || !$post) {
+            return $input;
+        }
+        if(function_exists('is_cart') && function_exists('is_checkout') && function_exists('is_checkout_pay_page')) {
+            if(is_cart() || is_checkout() || is_checkout_pay_page()) {
+                return $input;
+            }
+        }
         $taxonomy= get_term_by('slug', get_query_var( 'term' ), get_query_var('taxonomy'));
         if(is_single($post) || is_page()) {
             set_headers($post->post_modified_gmt);
@@ -66,13 +77,13 @@ function  last_modified() {
                 set_headers($taxonomy->term_modified_gmt);
             }
         }
-
     }
+    return $input;
 }
 
 add_action('save_post', 'update_terms_by_post', 10, 2);
-function update_terms_by_post($post_id, $post){
-    if (!wp_is_post_revision($post_id)){
+function update_terms_by_post($post_id, $post = null){
+    if ($post && !wp_is_post_revision($post_id)){
         remove_action('save_post', 'update_terms_by_post');
 
         if($post->post_type == 'product') {
